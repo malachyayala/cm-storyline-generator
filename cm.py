@@ -3,21 +3,20 @@ import numpy as np
 import json
 
 client = OpenAI(base_url="http://127.0.0.1:1234/v1", api_key="lm-studio")
-MODEL = "deepseek-r1-distill-llama-8b"
 
-with open('cm/fifaClubTeams.txt') as clubs:
+with open('fifaClubTeams.txt') as clubs:
     # Read all the lines into a list
     allClubs = clubs.readlines()
 randomClub = np.random.choice(allClubs)
 print("Your starter team is: " + randomClub)
 
-with open('cm/fifaChallenges.txt') as challenges:
+with open('fifaChallenges.txt') as challenges:
     # Read all the lines into a list
     allChallenges = challenges.readlines()
 randomChallenge = np.random.choice(allChallenges)
 print("Your save challenge is: " + randomChallenge)
 
-with open('cm/fifaFormations.txt') as formations:
+with open('fifaFormations.txt') as formations:
     # Read all the lines into a list
     allFormations = formations.readlines()
 randomFormation = np.random.choice(allFormations)
@@ -62,13 +61,22 @@ messages = [
 } """
 
 # Get response from AI
+messages = [
+    {"role": "user", "content": clubHistoryPrompt}
+]
+
 response = client.chat.completions.create(
     model="your-model",
     messages=messages,
+    stream=False
 )
+
+final = response.choices[0].message.content
+            
+noThinkResponse = final.split('</think>')[-1].strip()
+
+print(noThinkResponse)
 
 # Parse and display the results
 """ results = json.loads(response.choices[0].message.content)
 print(json.dumps(results, indent=2)) """
-
-print(response.choices[0].message.content)
