@@ -3,14 +3,17 @@ from openai import OpenAI
 import numpy as np
 import json
 
-def get_random_item(filename):
+
+def get_random_item(filename: str) -> str:
     with open(filename) as file:
         items = file.readlines()
     return np.random.choice(items).strip()
 
-def generate_club_history_prompt(randomClub):
+def generate_club_history_prompt(randomClub: str) -> str:
     return f"""
-    I'm doing a FIFA career mode. Please provide the following information about the club {randomClub} in JSON format:
+    I'm doing a FIFA career mode trying to generate important information to make my career mode 
+    more immersive and I need you to as a fifa career mode expert. 
+    Please provie me with the following information about {randomClub}:
 
     1. **Club Backstory**: 
        - Write an in-depth backstory of the club in a paragraph longer than 10 sentences.
@@ -22,7 +25,7 @@ def generate_club_history_prompt(randomClub):
        - Focus on the 4 most successful clubs and the 5 biggest rivalries, explaining why they are rivals.
        - Ensure it is no less than 6 sentences and sounds like a historian wrote it.
 
-    3. **Playing Style and Transfer Philosophy**:
+    3. **Club Philosophy**:
        - Provide a 7-sentence paragraph about {randomClub}'s playing style and transfer philosophy.
 
     4. **Club Influence and Achievements**:
@@ -32,24 +35,24 @@ def generate_club_history_prompt(randomClub):
        - Make it sound like a historian wrote it.
     """
 
-def get_ai_response(prompt):
-    api_key = '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'
+def get_ai_response(prompt: str) -> str:
+    api_key = 'lm-studio'
     if not api_key:
         raise ValueError("No API key found. Please set the OPENAI_API_KEY environment variable.")
     
-    client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+    client = OpenAI(base_url="http://127.0.0.1:1234/v1", api_key="lm-studio")
     
     messages = [{"role": "user", "content": prompt}]
     
     response = client.chat.completions.create(
-        model="deepseek/deepseek-r1-distill-llama-70b:free",
+        model='deepseek-r1-distill-qwen-32b',
         messages=messages,
         stream=False
     )
     
     return response.choices[0].message.content
 
-def main():
+def main() -> None:
     randomClub = get_random_item('fifaClubTeams.txt')
     print("Your starter team is: " + randomClub)
 
@@ -62,13 +65,9 @@ def main():
     clubHistoryPrompt = generate_club_history_prompt(randomClub)
     
     final = get_ai_response(clubHistoryPrompt)
-    
-    try:
-        structured_response = json.loads(final)
-        print(json.dumps(structured_response, indent=2))
-    except json.JSONDecodeError:
-        print("Failed to parse JSON response")
-        print(final)
+
+    noThinkResponse = final.split('</think>')[-1].strip()
+    print(noThinkResponse)
 
 if __name__ == "__main__":
     main()
